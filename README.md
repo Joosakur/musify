@@ -28,20 +28,19 @@ Each client call has a few quick auto-retries for 5xx errors with an exponential
 - Kotlin
 - Spring Boot
 - WebClient from Spring WebFlux as HTTP client
-- Caffeine as cache
+- Caffeine as local in-memory cache
 - JUnit 5 as testing framework
 - okhttp MockWebServer for mocking responses
 - ktlint for code formatting
 
 ## Todo
-- Proper logging
-- Consider distributed tracing
 - Discuss whether partial responses or errors are preferred
-- Add OpenAPI definition
 - Consider having 2nd level shared cache in e.g. Redis
 - Circuit breaker for 3rd party APIs?
 - Rate limiting?
 - Figure out if possible to query less data from wikidata
+- Consider distributed tracing
+- Add OpenAPI definition
 
 ## Example urls
 - http://localhost:8081/musify/music-artist/details/f27ec8db-af05-4f36-916e-3d57f91ecf5e

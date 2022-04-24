@@ -12,7 +12,7 @@ class ErrorResponseMapping : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(value = [NotFoundException::class])
     fun notFound(req: HttpServletRequest, ex: NotFoundException): ResponseEntity<Unit> {
-        logger.warn("Handing NotFoundException: ${ex.message}")
+        logger.warn("Handling NotFoundException: ${ex.message}")
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
     }
 }

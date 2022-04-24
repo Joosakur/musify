@@ -29,7 +29,8 @@ class CAAClient(
             .bodyToMono<ReleaseGroupResponse>()
             .defaultRetries()
             .awaitSingle()
-            .let { res -> getPrimaryImage(res.images)?.image?.also { cache.put(mbid, it) } }
+            .let { res -> getPrimaryImage(res.images)?.image }
+            ?.also { cache.put(mbid, it) }
     }
 
     data class ReleaseGroupResponse(
