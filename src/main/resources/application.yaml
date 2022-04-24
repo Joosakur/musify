@@ -1,2 +1,13 @@
 server:
   port: 8081
+
+app:
+  clients:
+    mb:
+      base-url: "http://musicbrainz.org/ws/2"
+    wikidata:
+      base-url: "https://www.wikidata.org/wiki"
+    wikipedia:
+      base-url: "https://en.wikipedia.org/api/rest_v1"
+    caa:
+      base-url: "http://coverartarchive.org"

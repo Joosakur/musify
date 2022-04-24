@@ -1,0 +1,10 @@
+app:
+  clients:
+    mb:
+      base-url: "http://localhost:9001"
+    wikidata:
+      base-url: "http://localhost:9002"
+    wikipedia:
+      base-url: "http://localhost:9003"
+    caa:
+      base-url: "http://localhost:9004"

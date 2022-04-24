@@ -29,9 +29,9 @@ fun jsonClientBuilder(baseurl: String, timeoutMillis: Int = 10_000, followRedire
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
 }
 
-fun WebClient.ResponseSpec.mapErrors() = this
-    .onStatus(HttpStatus::is4xxClientError) { a -> throw HttpClientError(a.statusCode().value()) }
-    .onStatus(HttpStatus::is5xxServerError) { a -> throw HttpServerError(a.statusCode().value()) }
+fun WebClient.ResponseSpec.mapErrors(context: String) = this
+    .onStatus(HttpStatus::is4xxClientError) { res -> throw HttpClientError(res.statusCode().value(), context) }
+    .onStatus(HttpStatus::is5xxServerError) { res -> throw HttpServerError(res.statusCode().value(), context) }
 
 fun <T> Mono<T>.defaultRetries() = retryWhen(
     Retry
@@ -39,5 +39,6 @@ fun <T> Mono<T>.defaultRetries() = retryWhen(
         .filter { it is HttpServerError }
 )
 
-class HttpClientError(status: Int) : RuntimeException("Request failed with status $status")
-class HttpServerError(status: Int) : RuntimeException("Request failed with status $status")
+sealed class HttpError(status: Int, context: String) : RuntimeException("Request $context failed with status $status")
+class HttpClientError(status: Int, context: String) : HttpError(status, context)
+class HttpServerError(status: Int, context: String) : HttpError(status, context)

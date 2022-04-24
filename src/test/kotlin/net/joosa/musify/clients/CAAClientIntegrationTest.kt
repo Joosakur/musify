@@ -1,25 +1,32 @@
 package net.joosa.musify.clients
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import java.net.URI
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@SpringBootTest
 class CAAClientIntegrationTest {
-
     val mockServer = MockWebServer()
-    val client = CAAClient("http://localhost:9000")
+
+    @Autowired
+    lateinit var client: CAAClient
+
+    @Autowired
+    lateinit var objectMapper: ObjectMapper
 
     @BeforeEach
     internal fun setUp() {
-        mockServer.start(9000)
+        mockServer.start(9004)
     }
 
     @AfterEach
@@ -43,7 +50,7 @@ class CAAClientIntegrationTest {
         mockServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(jacksonObjectMapper().writeValueAsString(responseBody))
+                .setBody(objectMapper.writeValueAsString(responseBody))
                 .addHeader("Content-Type", "application/json")
         )
 
@@ -57,7 +64,7 @@ class CAAClientIntegrationTest {
         mockServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(jacksonObjectMapper().writeValueAsString(responseBody))
+                .setBody(objectMapper.writeValueAsString(responseBody))
                 .addHeader("Content-Type", "application/json")
         )
 
@@ -72,7 +79,7 @@ class CAAClientIntegrationTest {
         mockServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(jacksonObjectMapper().writeValueAsString(responseBody))
+                .setBody(objectMapper.writeValueAsString(responseBody))
                 .addHeader("Content-Type", "application/json")
         )
 
@@ -85,7 +92,7 @@ class CAAClientIntegrationTest {
         mockServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
-                .setBody(jacksonObjectMapper().writeValueAsString(responseBody))
+                .setBody(objectMapper.writeValueAsString(responseBody))
                 .addHeader("Content-Type", "application/json")
         )
 

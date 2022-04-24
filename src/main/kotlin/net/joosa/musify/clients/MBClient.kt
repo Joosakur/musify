@@ -3,6 +3,8 @@ package net.joosa.musify.clients
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.benmanes.caffeine.cache.Caffeine
 import kotlinx.coroutines.reactor.awaitSingle
+import net.joosa.musify.shared.ArtistNotFoundException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.bodyToMono
 import java.net.URI
@@ -10,8 +12,10 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @Component
-class MBClient {
-    private val client = jsonClientBuilder("http://musicbrainz.org/ws/2").build()
+class MBClient(
+    @Value("\${app.clients.mb.base-url}") baseUrl: String
+) {
+    private val client = jsonClientBuilder(baseUrl).build()
 
     private val cache = Caffeine.newBuilder()
         .expireAfterWrite(1, TimeUnit.DAYS)
@@ -23,7 +27,8 @@ class MBClient {
             .get()
             .uri("/artist/{mbid}?fmt=json&inc=url-rels+release-groups", mbid)
             .retrieve()
-            .mapErrors()
+            .onStatus({ status -> status.value() == 404 }) { throw ArtistNotFoundException(mbid.toString()) }
+            .mapErrors("to music brainz")
             .bodyToMono<ArtistResponse>()
             .defaultRetries()
             .map { res ->
@@ -42,6 +47,7 @@ class MBClient {
                 )
             }
             .awaitSingle()
+            .also { cache.put(mbid, it) }
     }
 
     data class ArtistResponse(

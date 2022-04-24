@@ -2,47 +2,61 @@ package net.joosa.musify.artist
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.coroutineScope
 import net.joosa.musify.clients.CAAClient
+import net.joosa.musify.clients.HttpError
 import net.joosa.musify.clients.MBClient
+import net.joosa.musify.clients.WikidataClient
+import net.joosa.musify.clients.WikipediaClient
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.WebClientException
 import java.net.URI
 import java.util.*
 
 @Service
 class ArtistService(
     private val mbClient: MBClient,
+    private val wikidataClient: WikidataClient,
+    private val wikipediaClient: WikipediaClient,
     private val caaClient: CAAClient
 ) {
-    suspend fun getArtist(mbid: UUID): Artist {
+    suspend fun getArtist(mbid: UUID): Artist = coroutineScope {
         val mbArtist = mbClient.getArtist(mbid)
 
-        val albums = runBlocking {
-            mbArtist.albums.map { album ->
-                async {
-                    Album(
-                        id = album.id,
-                        title = album.title,
-                        imageUrl = try {
-                            caaClient.getPrimaryImageUrl(album.id)
-                        } catch (e: WebClientException) {
-                            null
-                        }
-                    )
-                }
-            }.awaitAll()
-        }
+        val albums = async { getAlbums(mbArtist) }
+        val description = async { getWikiDescription(mbArtist) }
 
-        return Artist(
+        Artist(
             mbid = mbArtist.mbid,
             name = mbArtist.name,
             gender = mbArtist.gender,
             country = mbArtist.country,
             disambiguation = mbArtist.disambiguation,
-            description = null, // TODO
-            albums = albums
+            description = description.await(),
+            albums = albums.await()
         )
+    }
+
+    private suspend fun getAlbums(artist: MBClient.MBArtist) = coroutineScope {
+        artist.albums.map { album ->
+            async {
+                Album(
+                    id = album.id,
+                    title = album.title,
+                    imageUrl = try {
+                        caaClient.getPrimaryImageUrl(album.id)
+                    } catch (e: HttpError) {
+                        null
+                    }
+                )
+            }
+        }.awaitAll()
+    }
+    private suspend fun getWikiDescription(artist: MBClient.MBArtist): String? {
+        if (artist.wikiDataId == null) return null
+
+        val pageTitle = wikidataClient.getWikipediaTitle(artist.wikiDataId) ?: return null
+
+        return wikipediaClient.getWikipediaSummary(pageTitle)
     }
 }
 
